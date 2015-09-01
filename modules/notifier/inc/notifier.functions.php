@@ -478,7 +478,7 @@ function cot_notifier_trigger($area, $item_id, $posterid, $message)
 				'sub_lastsent' => $sys['now']
 			), "sub_id = {$subscription['sub_id']}");
 			
-			if (cot_notifier_mail_update($usehtml, $template, $subscription, trim(strip_tags($message)), $urlparams))
+			if (cot_notifier_mail_update($usehtml, $template, $subscription, trim(strip_tags($message)), $urlparams) && cot_plugin_active('hits'))
 			{
 				cot_stat_update("notifier");
 			}
