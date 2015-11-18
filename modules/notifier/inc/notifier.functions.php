@@ -6,7 +6,7 @@ global $db_x, $db_subscriptions, $db_settings, $areas, $freq_codes, $freq_titles
 if (!$db_subscriptions) $db_subscriptions = $db_x.'notifier_subscriptions';
 if (!$db_settings) $db_settings = $db_x.'notifier_settings';
 
-list($usr['auth_read'], $usr['auth_write'], $usr['isadmin']) = cot_auth('notifier', 'any');
+list($notifier_auth['auth_read'], $notifier_auth['auth_write'], $notifier_auth['isadmin']) = cot_auth('notifier', 'any');
 
 require_once cot_langfile('notifier', 'module');
 
@@ -34,7 +34,7 @@ foreach (cot_getextplugins('notifier.config') as $pl)
  */
 function cot_notifier_subscribe($area, $item_id, $item_desc, $user_id = null)
 {
-	global $db, $db_subscriptions, $sys, $usr;
+	global $db, $db_subscriptions, $sys, $usr, $notifier_auth;
 	if (!$area || !$item_id) return false;
 	if (!$user_id) $user_id = $usr['id'];
 	
@@ -45,7 +45,7 @@ function cot_notifier_subscribe($area, $item_id, $item_desc, $user_id = null)
 	}
 	/* ===== */
 
-	cot_block($usr['auth_write'] && ($user_id == $usr['id'] || $usr['isadmin']));
+	cot_block($notifier_auth['auth_write'] && ($user_id == $usr['id'] || $notifier_auth['isadmin']));
 	
 	return (bool)$db->insert($db_subscriptions, array(
 		'sub_userid' => $user_id,
@@ -88,7 +88,7 @@ function cot_notifier_unsubscribe($sub_id)
  */
 function cot_notifier_unsubscribe_all($user_id = null)
 {
-	global $db, $db_subscriptions, $usr;
+	global $db, $db_subscriptions, $usr, $notifier_auth;
 	if (!is_int($user_id)) $user_id = $usr['id'];
 	
 	/* === Hook === */
@@ -98,7 +98,7 @@ function cot_notifier_unsubscribe_all($user_id = null)
 	}
 	/* ===== */
 	
-	cot_block($user_id == $usr['id'] || $usr['isadmin']);
+	cot_block($user_id == $usr['id'] || $notifier_auth['isadmin']);
 	
 	return (bool)$db->delete($db_subscriptions, "sub_userid = $user_id");
 }
@@ -115,7 +115,7 @@ function cot_notifier_unsubscribe_all($user_id = null)
  */
 function cot_notifier_check($area, $item_id, $user_id = null)
 {
-	global $db, $db_subscriptions, $usr;
+	global $db, $db_subscriptions, $usr, $notifier_auth;
 	if (!$area || !$item_id) return false;
 	if (!is_int($user_id)) $user_id = $usr['id'];
 	
@@ -126,7 +126,7 @@ function cot_notifier_check($area, $item_id, $user_id = null)
 	}
 	/* ===== */
 	
-	cot_block($user_id == $usr['id'] || $usr['isadmin']);
+	cot_block($user_id == $usr['id'] || $notifier_auth['isadmin']);
 	
 	return $db->query("
 		SELECT *
@@ -147,7 +147,7 @@ function cot_notifier_check($area, $item_id, $user_id = null)
  */
 function cot_notifier_count_subscriptions($user_id = null)
 {
-	global $db, $db_subscriptions, $usr;
+	global $db, $db_subscriptions, $usr, $notifier_auth;
 	if (!is_int($user_id)) $user_id = $usr['id'];
 	
 	/* === Hook === */
@@ -157,7 +157,7 @@ function cot_notifier_count_subscriptions($user_id = null)
 	}
 	/* ===== */
 	
-	cot_block($user_id == $usr['id'] || $usr['isadmin']);
+	cot_block($user_id == $usr['id'] || $notifier_auth['isadmin']);
 	
 	return (int)$db->query("
 		SELECT COUNT(*)
@@ -203,7 +203,7 @@ function cot_notifier_count_subscribers($area, $item_id)
  */
 function cot_notifier_list_subscriptions($user_id = null)
 {
-	global $db, $db_subscriptions, $usr;
+	global $db, $db_subscriptions, $usr, $notifier_auth;
 	if (!is_int($user_id)) $user_id = $usr['id'];
 	
 	/* === Hook === */
@@ -213,7 +213,7 @@ function cot_notifier_list_subscriptions($user_id = null)
 	}
 	/* ===== */
 	
-	cot_block($user_id == $usr['id'] || $usr['isadmin']);
+	cot_block($user_id == $usr['id'] || $notifier_auth['isadmin']);
 	
 	return $db->query("
 		SELECT *
@@ -267,7 +267,7 @@ function cot_notifier_list_subscribers($area, $item_id)
  */
 function cot_notifier_set_state($area, $item_id, $state, $user_id = null)
 {
-	global $db, $db_subscriptions, $usr, $sys;
+	global $db, $db_subscriptions, $usr, $sys, $notifier_auth;
 	if (!$area || !$item_id || !in_array($state, array('active','inactive','paused'))) return;
 	if (!$user_id) $user_id = $usr['id'];
 	
@@ -278,7 +278,7 @@ function cot_notifier_set_state($area, $item_id, $state, $user_id = null)
 	}
 	/* ===== */
 	
-	cot_block($user_id == $usr['id'] || $usr['isadmin']);
+	cot_block($user_id == $usr['id'] || $notifier_auth['isadmin']);
 
 	return (bool)$db->update($db_subscriptions, array(
 		'sub_state' => $state,
@@ -335,7 +335,7 @@ function cot_notifier_tags($area, $item_id, $desc)
  */
 function cot_notifier_read($area, $item_id, $user_id = null)
 {
-	global $db, $db_subscriptions, $sys, $usr;
+	global $db, $db_subscriptions, $sys, $usr, $notifier_auth;
 	if (!$area || !$item_id) return;
 	if (!$user_id) $user_id = $usr['id'];
 	
@@ -346,7 +346,7 @@ function cot_notifier_read($area, $item_id, $user_id = null)
 	}
 	/* ===== */
 	
-	cot_block($user_id == $usr['id'] || $usr['isadmin']);
+	cot_block($user_id == $usr['id'] || $notifier_auth['isadmin']);
 	
 	return (bool)$db->update($db_subscriptions, array(
 		'sub_state' => 'active',
@@ -478,9 +478,9 @@ function cot_notifier_trigger($area, $item_id, $posterid, $message)
 				'sub_lastsent' => $sys['now']
 			), "sub_id = {$subscription['sub_id']}");
 			
-			if (cot_notifier_mail_update($usehtml, $template, $subscription, trim(strip_tags($message)), $urlparams) && cot_plugin_active('hits'))
+			if (cot_notifier_mail_update($usehtml, $template, $subscription, trim(strip_tags($message)), $urlparams))
 			{
-				cot_stat_update("notifier");
+				//cot_stat_update("notifier");
 			}
 		}
 	}

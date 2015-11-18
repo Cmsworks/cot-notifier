@@ -13,6 +13,7 @@ $env['location'] = 'notifier';
 require_once cot_incfile('forms');
 require_once cot_incfile('notifier', 'module');
 
+list($usr['auth_read'], $usr['auth_write'], $usr['isadmin']) = cot_auth('notifier', 'any');
 cot_block($usr['auth_read'] && $areas);
 
 switch ($a)
